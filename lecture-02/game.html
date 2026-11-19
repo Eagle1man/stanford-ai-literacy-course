@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренер моделей</title>
+<style>
+  :root{
+    --navy:#1f3564; --navy2:#2c4a85; --accent:#c0502a; --teal:#0f6b6b;
+    --light:#eaeff7; --line:#d5deec; --ink:#1e1e1e; --grey:#6b7280; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:linear-gradient(160deg,#f4f7fc 0%,#e7edf7 100%);
+    color:var(--ink); min-height:100vh; display:flex; justify-content:center;
+    padding:24px 16px 40px;
+  }
+  .app{width:100%;max-width:880px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:24px;line-height:1.2;margin:4px 0 0;color:var(--navy);font-weight:700}
+  .sub{font-size:13px;color:var(--grey);margin-top:4px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{background:var(--white);border:1px solid var(--line);border-radius:999px;padding:7px 12px;
+    font-size:13px;color:var(--navy);white-space:nowrap;font-weight:600}
+  .pill b{color:var(--accent)}
+  .bar{height:8px;background:#dfe6f2;border-radius:999px;overflow:hidden;margin:8px 0 18px}
+  .bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--teal));
+    border-radius:999px;transition:width .35s ease}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;
+    box-shadow:0 10px 30px rgba(31,53,100,.07)}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    font-size:12px;color:var(--grey);margin-bottom:10px}
+  .topic{background:var(--light);color:var(--navy);border-radius:999px;padding:4px 10px;font-weight:600}
+  .scenario{background:#f7f9fd;border-left:3px solid var(--navy);border-radius:8px;
+    padding:12px 14px;font-size:15px;line-height:1.5;color:#33405a;margin-bottom:14px}
+  .q{font-size:18px;line-height:1.45;font-weight:600;margin:0 0 14px}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;
+    background:var(--white);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+    font-size:15px;line-height:1.4;color:var(--ink);cursor:pointer;transition:.15s}
+  .opt:hover:not(:disabled){border-color:var(--navy);background:#f7f9fd}
+  .opt .key{flex:0 0 24px;height:24px;border-radius:7px;background:var(--light);color:var(--navy);
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .opt.correct{border-color:var(--teal);background:#eef7f5}
+  .opt.correct .key{background:var(--teal);color:#fff}
+  .opt.wrong{border-color:var(--accent);background:#fdf1ec}
+  .opt.wrong .key{background:var(--accent);color:#fff}
+  .opt:disabled{cursor:default}
+  .order-items{display:flex;flex-direction:column;gap:9px}
+  .placed{background:var(--light)}
+  .slot{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px dashed var(--navy);
+    color:var(--navy);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .placed .slot{border-style:solid;background:var(--navy);color:#fff;border-color:var(--navy)}
+  .answer-box{display:flex;gap:10px;align-items:center;margin-top:4px}
+  input[type=number]{font:inherit;font-size:20px;padding:10px 12px;width:140px;border-radius:10px;
+    border:1.5px solid var(--line);outline:none}
+  input[type=number]:focus{border-color:var(--navy)}
+  .unit{font-size:18px;color:var(--grey)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .btn{font:inherit;font-weight:600;font-size:15px;border-radius:11px;padding:11px 18px;cursor:pointer;
+    border:1.5px solid transparent;transition:.15s}
+  .btn.primary{background:var(--navy);color:#fff}
+  .btn.primary:hover{background:var(--navy2)}
+  .btn.ghost{background:transparent;color:var(--navy);border-color:var(--line)}
+  .btn.ghost:hover{border-color:var(--navy)}
+  .btn.hint{background:#fff;color:var(--accent);border-color:#f0c9b8}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .feedback{margin-top:16px;border-radius:12px;padding:14px 16px;font-size:15px;line-height:1.5;
+    display:none}
+  .feedback.show{display:block;animation:in .22s ease}
+  .feedback.good{background:#eef7f5;border:1px solid #bfe0d8}
+  .feedback.bad{background:#fdf1ec;border:1px solid #f0c9b8}
+  .feedback .title{font-weight:700;margin-bottom:6px;color:var(--navy)}
+  .feedback.good .title{color:var(--teal)}
+  .feedback.bad .title{color:var(--accent)}
+  .hintbox{margin-top:12px;background:#fff8f4;border:1px dashed #f0c9b8;border-radius:10px;
+    padding:10px 12px;font-size:14px;color:#7a4330;display:none}
+  .hintbox.show{display:block}
+  .score-pop{position:fixed;right:26px;top:22px;background:var(--teal);color:#fff;font-weight:700;
+    padding:8px 14px;border-radius:999px;font-size:15px;opacity:0;transform:translateY(-8px);
+    transition:.3s;pointer-events:none;z-index:9}
+  .score-pop.show{opacity:1;transform:translateY(0)}
+  .final{text-align:center;padding:8px 0 4px}
+  .final .big{font-size:52px;font-weight:800;color:var(--navy);line-height:1}
+  .final .cap{font-size:14px;color:var(--grey);margin-top:6px}
+  .stars{font-size:34px;letter-spacing:6px;margin:14px 0 6px;color:#e3b23c}
+  .verdict{font-size:17px;line-height:1.5;color:#33405a;margin:12px auto 0;max-width:640px}
+  .review{text-align:left;margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+  .review h3{font-size:15px;color:var(--navy);margin:0 0 10px}
+  .review ul{margin:0;padding-left:18px;font-size:14px;line-height:1.5;color:#3b4557}
+  .review li{margin-bottom:10px}
+  .review .topic{font-size:11px;margin-right:6px}
+  .legend{font-size:12px;color:var(--grey);margin-top:14px}
+  footer{margin-top:16px;font-size:12px;color:var(--grey);text-align:center;line-height:1.5}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (max-width:640px){
+    h1{font-size:20px} .q{font-size:16px} .stats{justify-content:flex-start}
+    header{flex-direction:column} .card{padding:18px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="kicker">Лекция 2 · практика</div>
+      <h1>Тренер моделей</h1>
+      <div class="sub">Выборки, переобучение, обратное распространение, метрики и вероятности — 10 минут</div>
+    </div>
+    <div class="stats">
+      <div class="pill">Вопрос <b id="s-round">1</b>/<span id="s-total">0</span></div>
+      <div class="pill">Очки <b id="s-score">0</b></div>
+      <div class="pill">Серия <b id="s-streak">0</b></div>
+    </div>
+  </header>
+  <div class="bar"><div id="pbar"></div></div>
+  <main id="stage"></main>
+  <footer>Игра к лекции «Как модели учатся и рассуждают при неполной информации». После каждого ответа — короткий разбор.</footer>
+</div>
+<div class="score-pop" id="pop"></div>
+
+<script>
+var GAME = {"rounds": [{"topic": "Выборки", "scenario": "Вы подбираете число слоёв и коэффициент регуляризации, сравнивая варианты модели.", "question": "На какой выборке это делать?", "type": "choice", "options": ["На обучающей: там больше данных", "На валидационной: тест должен остаться независимым", "На тестовой: она ближе к реальности", "На всех сразу: так надёжнее"], "answer": 1, "explain": "Подбор настроек — это тоже обучение, только не параметров, а решений. Каждое обращение к тесту переносит информацию о нём в модель, и итоговая оценка становится оптимистичной. Тест открывают один раз.", "hint": "Какой набор данных должен остаться нетронутым до конца?"}, {"topic": "Переобучение", "scenario": "Обучающая ошибка 1%, валидационная 29%.", "question": "Какой диагноз?", "type": "choice", "options": ["Недообучение: модель слишком простая", "Переобучение: модель запомнила обучающие данные", "Всё в норме: так и должно быть", "Ошибка в метрике: такого разрыва не бывает"], "answer": 1, "explain": "Разрыв между обучающей и валидационной ошибкой — диагностический признак переобучения. Модель хорошо описывает примеры, которые видела, и плохо переносит правило на новые. Лечится данными, регуляризацией и упрощением модели.", "hint": "Сравните два числа: где модель ошибается, а где нет."}, {"topic": "Backprop", "question": "Что передаётся назад при обратном распространении ошибки?", "type": "choice", "options": ["Исходные данные в обратном порядке", "Информация о вкладе каждого веса в ошибку", "Верные ответы из обучающего набора", "Предыдущая версия модели"], "answer": 1, "explain": "Данные никуда не возвращаются. Назад идёт информация о чувствительности ошибки к каждому параметру: где и насколько сеть ошиблась. Затем веса сдвигаются в сторону уменьшения ошибки.", "hint": "Что нужно знать, чтобы поправить вес: сам вход или его влияние на ошибку?"}, {"topic": "Нейросеть", "question": "Зачем нужна нелинейная функция активации?", "type": "choice", "options": ["Чтобы сеть обучалась быстрее", "Чтобы несколько слоёв не схлопывались в одно линейное правило", "Чтобы уменьшить число параметров", "Чтобы нормировать входные данные"], "answer": 1, "explain": "Без нелинейности композиция линейных преобразований остаётся линейной: десять слоёв дают то же, что один. Нелинейность — то, что позволяет сети описывать сложные зависимости, а не только прямые пропорции.", "hint": "Что даёт композиция линейных преобразований?"}, {"topic": "Порядок обучения", "question": "Расставьте шаги обучения модели в правильном порядке.", "type": "order", "items": ["Прямой проход: модель даёт предсказание", "Сравнение с правильным ответом: считается ошибка", "Обратный проход: распределяется вклад в ошибку", "Сдвиг весов в сторону уменьшения ошибки", "Повтор на следующей порции данных"], "explain": "Это один круг цикла обучения. Он повторяется много раз: одна эпоха — один проход по данным, эпох обычно десятки. Ошибка превращается в правку, и цикл замыкается.", "hint": "Сначала прогноз, в конце — сдвиг параметров."}, {"topic": "Метрики", "scenario": "Матрица ошибок: 40 верно нашли, 10 пропустили, 50 ложных тревог, 900 верно отклонили.", "question": "Какова полнота (recall) в процентах?", "type": "input", "answer": 80, "unit": "%", "tolerance": 0.5, "explain": "Полнота отвечает на вопрос: из всех, кто действительно болен, какую долю модель нашла. Больных всего 50 (40 найденных + 10 пропущенных), нашли 40. Значит, 40 из 50 — это 80%. Доля верных ответов при этом 94%, что звучит лучше, но скрывает пропуски.", "hint": "Знаменатель — все больные, а не все обследованные."}, {"topic": "Accuracy", "scenario": "Мошеннических транзакций 1%. Модель, которая всегда говорит «всё честное», даёт 99% точности.", "question": "Что не так с такой оценкой?", "type": "choice", "options": ["Ничего, 99% — отличный результат", "Модель не находит ни одного мошенничества: метрика обманывает", "Нужно больше данных, и проблема уйдёт", "Нужно увеличить число слоёв в модели"], "answer": 1, "explain": "При редком целевом классе высокая доля правильных ответов достигается тривиальным правилом. Смотреть надо на матрицу ошибок и на precision с recall по целевому классу.", "hint": "Сколько мошенничеств нашла модель, которая всегда говорит «честное»?"}, {"topic": "Выбор метрики", "scenario": "Скрининг заболевания: пропустить болезнь дороже, чем дать ложную тревогу.", "question": "На что ориентироваться в первую очередь?", "type": "choice", "options": ["Точность (precision)", "Полноту (recall)", "F1 как единственную метрику", "Долю правильных ответов (accuracy)"], "answer": 1, "explain": "Метрика выбирается по цене ошибки. Если пропуск дороже, нужна высокая полнота при контролируемой точности. F1 удобен для сравнения моделей, но предполагает равную цену ошибок, чего в этой задаче нет.", "hint": "Какая ошибка в этой задаче страшнее?"}, {"topic": "Байес", "scenario": "Болезнь встречается у одного человека из десяти тысяч. Анализ ошибается в 10% случаев. Результат положительный.", "question": "Как разумно поступить?", "type": "choice", "options": ["Сразу начать лечение: анализ положительный", "Учесть редкость болезни и подтвердить вторым, независимым анализом", "Игнорировать анализ: болезнь редкая", "Считать вероятность болезни равной 90%"], "answer": 1, "explain": "Итоговая вероятность зависит и от точности анализа, и от распространённости болезни. При редком заболевании здоровых с положительным результатом окажется сопоставимо или больше, чем больных. Поэтому положительный результат подтверждают независимой проверкой.", "hint": "Сколько здоровых людей дадут положительный результат при такой точности?"}, {"topic": "Приближённый вывод", "question": "Зачем нужен выборочный метод вроде Гиббса?", "type": "choice", "options": ["Чтобы получить точный ответ быстрее", "Чтобы приближённо оценить вероятности, когда точный вывод слишком дорог", "Чтобы обучить нейронную сеть", "Чтобы отсортировать признаки по важности"], "answer": 1, "explain": "Точный вывод требует суммирования по всем скрытым переменным, а это экспоненциально дорого. Гиббс последовательно перебирает значения, меняя по одной переменной, и после многих проходов частоты приближают искомое распределение. Это приближение, а не истина.", "hint": "Точный вывод в общем случае невозможен по времени — что остаётся?"}, {"topic": "Связь подходов", "question": "Какое утверждение о вероятностных моделях и нейронных сетях верно?", "type": "choice", "options": ["Это конкурирующие подходы, нужно выбирать один", "Они отвечают на разные вопросы и комбинируются в одной системе", "Вероятностные модели устарели после появления нейросетей", "Нейросети не работают с вероятностями"], "answer": 1, "explain": "Обучение ищет закономерности в данных, вероятностный вывод обновляет уверенность при новых свидетельствах. Это разные вопросы. Байесовские идеи используются внутри обучения: регуляризация, оценка неопределённости, байесовские нейронные сети.", "hint": "Спросите: какой вопрос решает каждый подход?"}]};
+</script>
+<script>
+(function(){
+  "use strict";
+  var state = { i:0, score:0, streak:0, best:0, correct:0, answers:[], hintUsed:false, done:false };
+  var stage = document.getElementById("stage");
+  var total = GAME.rounds.length;
+  document.getElementById("s-total").textContent = total;
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function shuffle(a){
+    var arr = a.slice();
+    for (var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function pop(text){
+    var p = document.getElementById("pop");
+    p.textContent = text;
+    p.classList.add("show");
+    setTimeout(function(){ p.classList.remove("show"); }, 900);
+  }
+  function refresh(){
+    document.getElementById("s-round").textContent = Math.min(state.i + 1, total);
+    document.getElementById("s-score").textContent = state.score;
+    document.getElementById("s-streak").textContent = state.streak;
+    document.getElementById("pbar").style.width = Math.round(state.i / total * 100) + "%";
+  }
+
+  function render(){
+    if (state.done){ renderFinal(); return; }
+    var r = GAME.rounds[state.i];
+    state.hintUsed = false;
+    stage.textContent = "";
+    var card = el("div", "card");
+
+    var meta = el("div", "meta");
+    meta.appendChild(el("span", "topic", r.topic));
+    meta.appendChild(el("span", null, "Раунд " + (state.i + 1) + " из " + total));
+    card.appendChild(meta);
+
+    if (r.scenario){ card.appendChild(el("div", "scenario", r.scenario)); }
+    card.appendChild(el("p", "q", r.question));
+
+    var feedback = el("div", "feedback");
+    var hint = el("div", "hintbox");
+    if (r.hint){ hint.textContent = "Подсказка: " + r.hint; }
+
+    var checkFn = null;
+
+    if (r.type === "choice"){
+      var opts = el("div", "opts");
+      var buttons = [];
+      r.options.forEach(function(text, idx){
+        var b = el("button", "opt");
+        b.type = "button";
+        var k = el("span", "key", String(idx + 1));
+        var t = el("span", null, text);
+        b.appendChild(k); b.appendChild(t);
+        b.addEventListener("click", function(){
+          if (b.disabled) return;
+          buttons.forEach(function(x){ x.disabled = true; });
+          var right = idx === r.answer;
+          buttons[r.answer].classList.add("correct");
+          if (!right) b.classList.add("wrong");
+          finish(right);
+        });
+        buttons.push(b);
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      card.appendChild(hint);
+
+      var row = el("div", "row");
+      if (r.hint){
+        var hb = el("button", "btn hint", "Подсказка (−50)");
+        hb.type = "button";
+        hb.addEventListener("click", function(){
+          if (state.hintUsed) return;
+          state.hintUsed = true;
+          hint.classList.add("show");
+          hb.disabled = true;
+        });
+        row.appendChild(hb);
+      }
+      card.appendChild(row);
+    }
+
+    if (r.type === "order"){
+      var correct = r.items.map(function(_, i){ return i; });
+      var shown = shuffle(correct);
+      var placed = [];
+      var list = el("div", "order-items");
+      var nodes = {};
+      shown.forEach(function(orig){
+        var b = el("button", "opt");
+        b.type = "button";
+        var slot = el("span", "slot", "");
+        b.appendChild(slot);
+        b.appendChild(el("span", null, r.items[orig]));
+        b.dataset.orig = String(orig);
+        b.addEventListener("click", function(){
+          var pos = placed.indexOf(orig);
+          if (pos >= 0){ placed.splice(pos, 1); }
+          else { placed.push(orig); }
+          drawOrder();
+        });
+        nodes[orig] = b;
+        list.appendChild(b);
+      });
+      function drawOrder(){
+        shown.forEach(function(orig){
+          var b = nodes[orig];
+          var pos = placed.indexOf(orig);
+          b.classList.toggle("placed", pos >= 0);
+          b.querySelector(".slot").textContent = pos >= 0 ? String(pos + 1) : "";
+        });
+        check.disabled = placed.length !== shown.length;
+      }
+      card.appendChild(list);
+      card.appendChild(hint);
+      var row2 = el("div", "row");
+      var check = el("button", "btn primary", "Проверить порядок");
+      check.type = "button";
+      check.disabled = true;
+      check.addEventListener("click", function(){
+        check.disabled = true;
+        var right = placed.every(function(v, i2){ return v === correct[i2]; });
+        placed.forEach(function(orig, i2){
+          nodes[orig].disabled = true;
+          nodes[orig].classList.add(orig === correct[i2] ? "correct" : "wrong");
+        });
+        finish(right);
+      });
+      row2.appendChild(check);
+      if (r.hint){
+        var hb2 = el("button", "btn hint", "Подсказка (−50)");
+        hb2.type = "button";
+        hb2.addEventListener("click", function(){
+          if (state.hintUsed) return;
+          state.hintUsed = true; hint.classList.add("show"); hb2.disabled = true;
+        });
+        row2.appendChild(hb2);
+      }
+      card.appendChild(row2);
+    }
+
+    if (r.type === "input"){
+      var box = el("div", "answer-box");
+      var inp = document.createElement("input");
+      inp.type = "number";
+      inp.step = "any";
+      inp.placeholder = "?";
+      box.appendChild(inp);
+      if (r.unit) box.appendChild(el("span", "unit", r.unit));
+      card.appendChild(box);
+      card.appendChild(hint);
+      var row3 = el("div", "row");
+      var check2 = el("button", "btn primary", "Проверить");
+      check2.type = "button";
+      var submit = function(){
+        var val = parseFloat(String(inp.value).replace(",", "."));
+        var tol = r.tolerance === undefined ? 0.01 : r.tolerance;
+        var right = !isNaN(val) && Math.abs(val - r.answer) <= tol;
+        inp.disabled = true;
+        check2.disabled = true;
+        inp.style.borderColor = right ? "#0f6b6b" : "#c0502a";
+        inp.style.background = right ? "#eef7f5" : "#fdf1ec";
+        if (!right){
+          var hintLine = el("div", "unit", "Правильный ответ: " + r.answer + (r.unit || ""));
+          card.insertBefore(hintLine, row3);
+        }
+        finish(right);
+      };
+      check2.addEventListener("click", submit);
+      inp.addEventListener("keydown", function(e){ if (e.key === "Enter") submit(); });
+      row3.appendChild(check2);
+      if (r.hint){
+        var hb3 = el("button", "btn hint", "Подсказка (−50)");
+        hb3.type = "button";
+        hb3.addEventListener("click", function(){
+          if (state.hintUsed) return;
+          state.hintUsed = true; hint.classList.add("show"); hb3.disabled = true;
+        });
+        row3.appendChild(hb3);
+      }
+      card.appendChild(row3);
+    }
+
+    function finish(right){
+      var base = right ? 100 : 0;
+      if (right){ state.streak += 1; } else { state.streak = 0; }
+      var bonus = right ? Math.max(0, state.streak - 1) * 20 : 0;
+      var gain = Math.max(0, base + bonus - (state.hintUsed ? 50 : 0));
+      state.score += gain;
+      if (right) state.correct += 1;
+      state.answers.push({ topic: r.topic, question: r.question, right: right,
+                           explain: r.explain, correctText: correctText(r) });
+      var hintBtns = card.querySelectorAll(".btn.hint");
+      for (var hi = 0; hi < hintBtns.length; hi++){ hintBtns[hi].disabled = true; }
+
+      feedback.className = "feedback show " + (right ? "good" : "bad");
+      feedback.appendChild(el("div", "title", right ? "Верно" + (gain ? "  +" + gain : "") : "Неверно"));
+      feedback.appendChild(el("div", null, r.explain));
+      if (r.type === "choice" && !right){
+        feedback.appendChild(el("div", "legend", "Верный вариант: " + r.options[r.answer]));
+      }
+      card.appendChild(feedback);
+      if (right && gain) pop("+" + gain);
+
+      var nav = el("div", "row");
+      var next = el("button", "btn primary", state.i + 1 < total ? "Дальше" : "Результат");
+      next.type = "button";
+      next.addEventListener("click", function(){
+        state.i += 1;
+        if (state.i >= total){ state.done = true; }
+        refresh(); render();
+      });
+      nav.appendChild(next);
+      card.appendChild(nav);
+      refresh();
+      next.focus();
+    }
+
+    function correctText(r){
+      if (r.type === "choice") return r.options[r.answer];
+      if (r.type === "order") return r.items.join(" → ");
+      return String(r.answer) + (r.unit || "");
+    }
+
+    stage.appendChild(card);
+    refresh();
+  }
+
+  function renderFinal(){
+    document.getElementById("pbar").style.width = "100%";
+    stage.textContent = "";
+    var card = el("div", "card final");
+    var acc = Math.round(state.correct / total * 100);
+    var stars = acc >= 85 ? 3 : (acc >= 60 ? 2 : 1);
+    card.appendChild(el("div", "big", String(state.score)));
+    card.appendChild(el("div", "cap", "очков · верно " + state.correct + " из " + total + " (" + acc + "%)"));
+    var st = el("div", "stars");
+    st.textContent = "★★★".slice(0, stars) + "☆☆☆".slice(0, 3 - stars);
+    card.appendChild(st);
+    var verdict = acc >= 85
+      ? "Материал усвоен: можно переходить к следующей лекции, а перед занятием достаточно просмотреть схемы."
+      : (acc >= 60
+        ? "Основа есть, но есть провалы. Разберите отмеченные темы в конспекте — они же чаще всего спрашиваются на интервью."
+        : "Пока рано идти дальше. Вернитесь к конспекту по темам из списка ниже и пройдите игру заново.");
+    card.appendChild(el("div", "verdict", verdict));
+
+    var wrong = state.answers.filter(function(a){ return !a.right; });
+    if (wrong.length){
+      var rev = el("div", "review");
+      rev.appendChild(el("h3", null, "Что стоит перечитать"));
+      var ul = el("ul");
+      wrong.forEach(function(a){
+        var li = el("li");
+        li.appendChild(el("span", "topic", a.topic));
+        li.appendChild(document.createTextNode(a.question + " — " + a.explain));
+        ul.appendChild(li);
+      });
+      rev.appendChild(ul);
+      card.appendChild(rev);
+    } else {
+      var rev2 = el("div", "review");
+      rev2.appendChild(el("h3", null, "Ни одной ошибки"));
+      rev2.appendChild(el("p", "legend", "Попробуйте пройти игру повторно: вопросы идут в другом порядке."));
+      card.appendChild(rev2);
+    }
+
+    var row = el("div", "row");
+    row.style.justifyContent = "center";
+    var again = el("button", "btn primary", "Пройти заново");
+    again.type = "button";
+    again.addEventListener("click", reset);
+    row.appendChild(again);
+    card.appendChild(row);
+    stage.appendChild(card);
+    refresh();
+  }
+
+  function reset(){
+    state = { i:0, score:0, streak:0, best:0, correct:0, answers:[], hintUsed:false, done:false };
+    refresh(); render();
+  }
+
+  document.addEventListener("keydown", function(e){
+    if (state.done) return;
+    var n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 9){
+      var opts = stage.querySelectorAll(".opt");
+      if (opts.length >= n && !opts[n - 1].disabled){ opts[n - 1].click(); }
+    }
+  });
+
+  // Самопроверка: открыть файл с #selftest — игра проходит себя и печатает итог.
+  var SELFTEST = location.hash.indexOf("selftest") >= 0;
+  var stPhase = 0;
+  function selfTestStep(){
+    if (state.done){
+      var out = document.createElement("div");
+      out.id = "selftest-result";
+      out.textContent = "SELFTEST score=" + state.score + " correct=" + state.correct +
+                        " total=" + total + " answers=" + state.answers.length;
+      document.body.appendChild(out);
+      return;
+    }
+    var r = GAME.rounds[state.i];
+    if (stPhase % 2 === 0){
+      if (r.type === "choice"){
+        stage.querySelectorAll(".opt")[r.answer].click();
+      } else if (r.type === "input"){
+        stage.querySelector("input").value = r.answer;
+        stage.querySelector(".btn.primary").click();
+      } else {
+        var nodes = stage.querySelectorAll(".opt");
+        for (var k = 0; k < r.items.length; k++){
+          for (var j = 0; j < nodes.length; j++){
+            if (nodes[j].dataset.orig === String(k) && !nodes[j].classList.contains("placed")){
+              nodes[j].click(); break;
+            }
+          }
+        }
+        stage.querySelector(".btn.primary").click();
+      }
+    } else {
+      var btns = stage.querySelectorAll(".btn.primary");
+      btns[btns.length - 1].click();
+    }
+    stPhase += 1;
+    setTimeout(selfTestStep, 20);
+  }
+
+  render();
+  if (SELFTEST){ setTimeout(selfTestStep, 30); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка по лекции «Логика»</title>
+<style>
+  :root{
+    --navy:#1f3564; --navy2:#2c4a85; --accent:#c0502a; --teal:#0f6b6b;
+    --light:#eaeff7; --line:#d5deec; --ink:#1e1e1e; --grey:#6b7280; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:linear-gradient(160deg,#f4f7fc 0%,#e7edf7 100%);
+    color:var(--ink); min-height:100vh; display:flex; justify-content:center;
+    padding:24px 16px 40px;
+  }
+  .app{width:100%;max-width:880px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:24px;line-height:1.2;margin:4px 0 0;color:var(--navy);font-weight:700}
+  .sub{font-size:13px;color:var(--grey);margin-top:4px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{background:var(--white);border:1px solid var(--line);border-radius:999px;padding:7px 12px;
+    font-size:13px;color:var(--navy);white-space:nowrap;font-weight:600}
+  .pill b{color:var(--accent)}
+  .bar{height:8px;background:#dfe6f2;border-radius:999px;overflow:hidden;margin:8px 0 18px}
+  .bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--teal));
+    border-radius:999px;transition:width .35s ease}
+  .card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;
+    box-shadow:0 10px 30px rgba(31,53,100,.07);margin-bottom:16px}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    font-size:12px;color:var(--grey);margin-bottom:10px}
+  .topic{background:var(--light);color:var(--navy);border-radius:999px;padding:4px 10px;font-weight:600}
+  .q{font-size:17px;line-height:1.45;font-weight:600;margin:0 0 12px}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;
+    background:var(--white);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;
+    font-size:15px;line-height:1.4;color:var(--ink);cursor:pointer;transition:.15s}
+  .opt:hover:not(:disabled){border-color:var(--navy);background:#f7f9fd}
+  .opt .key{flex:0 0 24px;height:24px;border-radius:7px;background:var(--light);color:var(--navy);
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .opt.picked{border-color:var(--navy);background:#f2f5fc}
+  .opt.picked .key{background:var(--navy);color:#fff}
+  .opt.correct{border-color:var(--teal);background:#eef7f5}
+  .opt.correct .key{background:var(--teal);color:#fff}
+  .opt.wrong{border-color:var(--accent);background:#fdf1ec}
+  .opt.wrong .key{background:var(--accent);color:#fff}
+  .opt:disabled{cursor:default}
+  .explain{display:none;margin-top:10px;border-radius:10px;padding:10px 12px;font-size:14px;
+    line-height:1.5;background:#f7f9fd;border:1px solid var(--line);color:#33405a}
+  .explain.show{display:block;animation:in .2s ease}
+  .explain.good{background:#eef7f5;border-color:#bfe0d8}
+  .explain.bad{background:#fdf1ec;border-color:#f0c9b8}
+  .explain .title{font-weight:700;margin-bottom:4px;color:var(--navy)}
+  .explain.good .title{color:var(--teal)}
+  .explain.bad .title{color:var(--accent)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .btn{font:inherit;font-weight:600;font-size:15px;border-radius:11px;padding:11px 18px;cursor:pointer;
+    border:1.5px solid transparent;transition:.15s}
+  .btn.primary{background:var(--navy);color:#fff}
+  .btn.primary:hover{background:var(--navy2)}
+  .btn.ghost{background:transparent;color:var(--navy);border-color:var(--line)}
+  .btn.ghost:hover{border-color:var(--navy)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .result{text-align:center;padding:8px 0 4px}
+  .result .big{font-size:52px;font-weight:800;color:var(--navy);line-height:1}
+  .result .cap{font-size:14px;color:var(--grey);margin-top:6px}
+  .stars{font-size:34px;letter-spacing:6px;margin:14px 0 6px;color:#e3b23c}
+  .verdict{font-size:17px;line-height:1.5;color:#33405a;margin:12px auto 0;max-width:640px}
+  .legend{font-size:12px;color:var(--grey);margin-top:12px}
+  footer{margin-top:16px;font-size:12px;color:var(--grey);text-align:center;line-height:1.5}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (max-width:640px){
+    h1{font-size:20px} .q{font-size:16px} .stats{justify-content:flex-start}
+    header{flex-direction:column} .card{padding:18px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="kicker">Лекция 5 · викторина</div>
+      <h1>Проверка по лекции «Логика»</h1>
+      <div class="sub">10 вопросов по синтаксису, моделям, выводимости, кванторам и унификации</div>
+    </div>
+    <div class="stats">
+      <div class="pill">Отвечено <b id="s-done">0</b>/<span id="s-total">0</span></div>
+      <div class="pill">Верно <b id="s-right">0</b></div>
+      <div class="pill">Очки <b id="s-score">0</b></div>
+    </div>
+  </header>
+  <div class="bar"><div id="pbar"></div></div>
+  <main id="stage"></main>
+  <footer>Викторина к лекции «Логика: знание, вывод и рассуждение». Ответы проверяются целиком, после проверки доступен разбор каждого вопроса.</footer>
+</div>
+
+<script>
+var QUIZ = {"questions": [{"topic": "Три части логики", "q": "Какова правильная последовательность трёх частей любой логики?", "options": ["Семантика → синтаксис → правила вывода", "Синтаксис → семантика → правила вывода", "Правила вывода → синтаксис → семантика", "Синтаксис → правила вывода → семантика — порядок не важен"], "answer": 1, "explain": "Сначала договариваются, что вообще можно записать (синтаксис), потом наделяют записи смыслом (семантика), и только потом учатся получать новое из известного (правила вывода). Порядок нельзя перепутать."}, {"topic": "Модель", "q": "Сколько моделей у трёх независимых пропозициональных символов?", "options": ["3", "6", "8", "Невозможно посчитать без правил вывода"], "answer": 2, "explain": "Каждый символ независимо истинен или ложен, поэтому число возможных миров — два в степени числа символов: 2³ = 8. Отсюда и экспоненциальный рост перебора."}, {"topic": "База знаний", "q": "Что происходит с набором допустимых миров, когда база знаний получает новый совместимый факт?", "options": ["Набор расширяется за счёт новых миров", "Набор не меняется", "Набор сужается: несовместимые миры отбрасываются", "Набор становится пустым"], "answer": 2, "explain": "Знание ограничивает: каждый факт отбрасывает миры, с ним несовместимые. Набор никогда не растёт, а пустым стал бы факт, противоречащий базе."}, {"topic": "Выводимость", "q": "Чем выводимость утверждения отличается от его контингентности?", "options": ["Выводимость — утверждение ложно во всех мирах", "При выводимости набор миров не меняется, при контингентности сужается, но не до пустоты", "Разницы нет, это синонимы", "Выводимость означает, что база противоречит утверждению"], "answer": 1, "explain": "Выводимость — отсутствие новой информации: утверждение и так верно во всех допустимых мирах. Контингентность — действительно новое знание, сужающее набор, но не обнуляющее его. Противоречие — это третий случай, пустой набор."}, {"topic": "Ask и Tell", "q": "Какой ответ получает операция Tell, если сообщённый факт противоречит базе?", "options": ["«Узнал новое» и добавляет факт", "«Я это уже знал»", "«Не принимаю: это противоречит базе»", "«Не знаю»"], "answer": 2, "explain": "Ответы Tell зеркальны Ask: факт уже был известен, не принимается из-за противоречия или принимается как новое знание. Совместить противоречащий факт с базой нельзя — набор опустел бы."}, {"topic": "Выполнимость", "q": "Почему вопрос «следует ли утверждение» сводят к проверке выполнимости?", "options": ["Потому что перебор всех миров растёт экспоненциально, а один вопрос о совместимости заменяет его", "Потому что логика не умеет выводить", "Потому что выполнимость даёт вероятность", "Потому что правила вывода всегда не полны"], "answer": 0, "explain": "Полный перебор невозможен: миров два в степени числа символов. Вместо этого спрашивают, остаётся ли хоть один совместимый мир. Утверждение выводится тогда, когда база с его отричанием невыполнима — две проверки на три исхода."}, {"topic": "Сходимость и полнота", "q": "Что означает «правило сходно, но не полно»?", "options": ["Оно выдаёт ложные следствия, зато быстро работает", "Оно не выдаёт ложного, но не всё истинное следствие способно получить", "Оно работает только с маленькими базами", "Оно бесполезно и не применяется"], "answer": 1, "explain": "Сходимость — «ничего кроме правды»: доказанное действительно следует из базы. Полнота — «вся правда»: любое истинное следствие вообще можно получить. Базовое правило сходно, но не полно, поэтому набор правил расширяют."}, {"topic": "Кванторы", "q": "Как правильно записать «все студенты знают арифметику»?", "options": ["Квантор «существует» плюс конъюнкция", "Квантор «для любого» плюс импликация «если…то»", "Квантор «для любого» плюс конъюнкция", "Квантор «существует» плюс импликация"], "answer": 1, "explain": "«Все» живёт с импликацией: для любого объекта, если он студент, то он знает арифметику. Конъюнкция под квантором «для любого» утверждала бы, что каждый объект на свете и студент, и знает арифметику."}, {"topic": "Унификация", "q": "Зачем правилу вывода первого порядка нужна унификация?", "options": ["Чтобы проверить утверждение на истинность во всех мирах", "Чтобы найти подстановку, делающую шаблон правила и факт одной записью", "Чтобы перебрать все возможные миры", "Чтобы превратить правило в вероятность"], "answer": 1, "explain": "Правило написано с переменными, факты — с конкретными объектами, прямого совпадения нет. Унификация ищет такую подстановку, после которой записи совпадут, и только потом заключение подставляется в объекты."}, {"topic": "Где живёт логика", "q": "Почему логика уступила место обучению и вероятности, но осталась незаменимой в некоторых областях?", "options": ["Потому что она работает только с числами", "Потому что она детерминирована и требует правил, но остаётся там, где вывод обязан быть доказуемым", "Потому что она слишком медленная", "Потому что правила вывода нельзя ускорить"], "answer": 1, "explain": "Неопределённость заняла вероятность, данные — машинное обучение. Логика осталась в регламентах, запросах, проверке систем и праве: там важен не только ответ, но и возможность показать, из чего он следует."}]};
+</script>
+<script>
+(function(){
+  "use strict";
+  var qs = QUIZ.questions;
+  var total = qs.length;
+  var picked = new Array(total).fill(null);
+  var graded = new Array(total).fill(false);
+  var rightCount = 0, score = 0;
+  var stage = document.getElementById("stage");
+  document.getElementById("s-total").textContent = total;
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function refresh(){
+    var done = graded.filter(Boolean).length;
+    document.getElementById("s-done").textContent = done;
+    document.getElementById("s-right").textContent = rightCount;
+    document.getElementById("s-score").textContent = score;
+    document.getElementById("pbar").style.width = Math.round(done / total * 100) + "%";
+  }
+
+  var checkBtn = el("button", "btn primary", "Проверить ответы");
+  checkBtn.type = "button";
+  var resetBtn = el("button", "btn ghost", "Начать заново");
+  resetBtn.type = "button";
+
+  function grade(){
+    var all = true;
+    for (var i = 0; i < total; i++){
+      if (picked[i] === null){ all = false; break; }
+    }
+    if (!all) return;
+    for (var j = 0; j < total; j++){
+      if (graded[j]) continue;
+      graded[j] = true;
+      var ok = picked[j] === qs[j].answer;
+      var card = stage.children[j];
+      var opts = card.querySelectorAll(".opt");
+      opts.forEach(function(b, k){
+        b.disabled = true;
+        if (k === qs[j].answer) b.classList.add("correct");
+        else if (k === picked[j]) b.classList.add("wrong");
+      });
+      var ex = card.querySelector(".explain");
+      ex.classList.add("show", ok ? "good" : "bad");
+      ex.appendChild(el("div", "title", ok ? "Верно" : "Неверно — правильный ответ: " +
+        qs[j].options[qs[j].answer]));
+      ex.appendChild(el("div", null, qs[j].explain));
+      if (ok){ rightCount += 1; score += 100; }
+    }
+    checkBtn.disabled = true;
+    refresh();
+    renderResult();
+  }
+
+  function renderResult(){
+    var acc = Math.round(rightCount / total * 100);
+    var stars = acc >= 85 ? 3 : (acc >= 60 ? 2 : 1);
+    var card = el("div", "card result");
+    card.appendChild(el("div", "big", rightCount + "/" + total));
+    card.appendChild(el("div", "cap", "верных ответов · " + score + " очков · " + acc + "%"));
+    var st = el("div", "stars");
+    st.textContent = "★★★".slice(0, stars) + "☆☆☆".slice(0, 3 - stars);
+    card.appendChild(st);
+    var verdict = acc >= 85
+      ? "Материал лекции усвоен: перед занятием достаточно просмотреть схемы и ключевые выводы."
+      : (acc >= 60
+        ? "Основа есть, но есть провалы. Перечитайте в конспекте разделы с отмеченными темами — они же чаще всего спрашиваются на интервью."
+        : "Пока рано идти дальше. Вернитесь к конспекту и схемам по темам из списка ниже, затем пройдите викторину повторно.");
+    card.appendChild(el("div", "verdict", verdict));
+
+    var wrong = [];
+    for (var i = 0; i < total; i++){
+      if (picked[i] !== qs[i].answer) wrong.push(i);
+    }
+    var rev = el("div", "explain show");
+    rev.appendChild(el("div", "title", wrong.length ? "Что стоит перечитать" : "Ни одной ошибки"));
+    if (wrong.length){
+      var ul = el("ul");
+      ul.style.margin = "4px 0 0";
+      ul.style.paddingLeft = "18px";
+      wrong.forEach(function(i){
+        var li = el("li");
+        li.style.marginBottom = "8px";
+        li.appendChild(el("span", "topic", qs[i].topic));
+        li.appendChild(document.createTextNode(" " + qs[i].q));
+        ul.appendChild(li);
+      });
+      rev.appendChild(ul);
+    } else {
+      rev.appendChild(el("div", null, "Все вопросы закрыты верно. Пройдите викторину повторно: варианты идут в другом порядке ответов."));
+    }
+    card.appendChild(rev);
+
+    var row = el("div", "row");
+    row.style.justifyContent = "center";
+    row.style.marginTop = "16px";
+    var again = el("button", "btn primary", "Пройти заново");
+    again.type = "button";
+    again.addEventListener("click", reset);
+    row.appendChild(again);
+    card.appendChild(row);
+    stage.appendChild(card);
+    refresh();
+  }
+
+  function reset(){
+    picked = new Array(total).fill(null);
+    graded = new Array(total).fill(false);
+    rightCount = 0; score = 0;
+    stage.textContent = "";
+    build();
+    refresh();
+  }
+
+  function build(){
+    qs.forEach(function(q, i){
+      var card = el("div", "card");
+      var meta = el("div", "meta");
+      meta.appendChild(el("span", "topic", q.topic));
+      meta.appendChild(el("span", null, "Вопрос " + (i + 1) + " из " + total));
+      card.appendChild(meta);
+      if (q.scenario) card.appendChild(el("div", "q", q.scenario));
+      card.appendChild(el("p", "q", q.q));
+      var opts = el("div", "opts");
+      q.options.forEach(function(text, k){
+        var b = el("button", "opt");
+        b.type = "button";
+        b.appendChild(el("span", "key", String.fromCharCode(1040 + k)));
+        b.appendChild(el("span", null, text));
+        b.addEventListener("click", function(){
+          if (graded[i]) return;
+          picked[i] = k;
+          opts.querySelectorAll(".opt").forEach(function(x){ x.classList.remove("picked"); });
+          b.classList.add("picked");
+          refresh();
+        });
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      card.appendChild(el("div", "explain"));
+      stage.appendChild(card);
+    });
+    var row = el("div", "row");
+    row.style.justifyContent = "center";
+    checkBtn.disabled = false;
+    resetBtn.disabled = false;
+    row.appendChild(checkBtn);
+    row.appendChild(resetBtn);
+    stage.appendChild(row);
+  }
+
+  checkBtn.addEventListener("click", grade);
+  resetBtn.addEventListener("click", reset);
+
+  // Самопроверка: открыть файл с #selftest — викторина отвечает на все вопросы и печатает итог.
+  var SELFTEST = location.hash.indexOf("selftest") >= 0;
+  function selfTest(){
+    if (SELFTEST === "run") return;
+    if (!SELFTEST) return;
+    SELFTEST = "run";
+    var step = 0;
+    function tick(){
+      if (step < total){
+        var card = stage.children[step];
+        card.querySelectorAll(".opt")[qs[step].answer].click();
+        step += 1;
+        setTimeout(tick, 15);
+        return;
+      }
+      grade();
+      var out = document.createElement("div");
+      out.id = "selftest-result";
+      out.textContent = "SELFTEST score=" + score + " correct=" + rightCount +
+                        " total=" + total + " answered=" +
+                        graded.filter(Boolean).length;
+      document.body.appendChild(out);
+    }
+    setTimeout(tick, 30);
+  }
+
+  build();
+  refresh();
+  selfTest();
+})();
+</script>
+</body>
+</html>
