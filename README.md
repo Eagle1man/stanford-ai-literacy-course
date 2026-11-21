@@ -1,10 +1,10 @@
 # Введение в искусственный интеллект — преподавательский пакет
 
-Курс из **пяти лекций по 90 минут**, по материалам [Stanford CS221 Autumn 2025](https://stanford-cs221.github.io/autumn2025/).
+Курс из **шести лекций по 90 минут** и **часовой практики**, по материалам [Stanford CS221 Autumn 2025](https://stanford-cs221.github.io/autumn2025/), [Stanford CS234 Winter 2026](https://web.archive.org/web/2026/https://web.stanford.edu/class/cs234/) и учебника [Sutton & Barto](http://incompleteideas.net/book/the-book.html).
 
 Аудитория — практики без подготовки по машинному обучению; преподаватель тоже не обязан быть специалистом по ML: по каждому слайду есть готовый текст, а по каждому механизму — объяснение, аналогия и схема для доски.
 
-## Лекции
+## Лекции и практика
 
 | № | Тема | Слайдов | Материалы |
 |---|---|---|---|
@@ -13,18 +13,28 @@
 | 3 | Большие языковые модели, трансформеры и объяснимость ИИ | 26 | [папка](lecture-03/) · [слайды PDF](lecture-03/presentation.pdf) · [игра](lecture-03/game.html) |
 | 4 | Игры: состязательный поиск и стратегии | 22 | [папка](lecture-04/) · [слайды PDF](lecture-04/presentation.pdf) · [игра](lecture-04/game.html) · [викторина](lecture-04/test.html) |
 | 5 | Логика: знание, вывод и рассуждение | 22 | [папка](lecture-05/) · [слайды PDF](lecture-05/presentation.pdf) · [игра](lecture-05/game.html) · [викторина](lecture-05/test.html) |
+| 6 | Обучение с подкреплением | 22 | [папка](lecture-06/) · [слайды PDF](lecture-06/presentation.pdf) · [конспект по слайдам PDF](lecture-06/conspect.pdf) · [игра](lecture-06/game.html) · [викторина](lecture-06/test.html) · [карточки PDF](lecture-06/flashcards.pdf) |
+| 7 | Практика: большой тест по лекциям 1–6 (60 минут) | — | [папка](lecture-07/) · [интерактивный тест](lecture-07/practice.html) · [печатная версия с ключом PDF](lecture-07/practice.pdf) |
+
+Лекция 6 — продолжение по официальным курсам Stanford: в CS221 отдельного занятия по обучению с подкреплением нет, материал собран по исполняемым файлам `reinforcement_learning.py` и `policy_gradient.py` (ветка `autumn2025`) и сверен с программой CS234 Winter 2026.
+
+## Как проводить часовую практику
+
+Откройте [lecture-07/practice.html](lecture-07/practice.html) на устройствах студентов и оставьте их работать: в режиме **«Большой тест — 60 минут»** включён таймер, который сам завершит тест по истечении времени. В конце показывается результат по каждой лекции и разбор каждой ошибки со ссылкой на нужные слайды. Ответы сохраняются в браузере, так что обновление страницы ничего не сбрасывает. Второй режим — **«Тренировка»**: без таймера, с фильтром по лекции и разбором сразу после ответа. Для печати есть [practice.pdf](lecture-07/practice.pdf) — вопросы и ключ ответов в одном файле.
 
 ## PDF
 
 **Для студентов** — презентации в PDF, читаются с телефона без сторонних приложений:
 
-[lecture-01](lecture-01/presentation.pdf) · [lecture-02](lecture-02/presentation.pdf) · [lecture-03](lecture-03/presentation.pdf) · [lecture-04](lecture-04/presentation.pdf) · [lecture-05](lecture-05/presentation.pdf)
+[lecture-01](lecture-01/presentation.pdf) · [lecture-02](lecture-02/presentation.pdf) · [lecture-03](lecture-03/presentation.pdf) · [lecture-04](lecture-04/presentation.pdf) · [lecture-05](lecture-05/presentation.pdf) · [lecture-06](lecture-06/presentation.pdf)
 
 **Для преподавателя** — конспекты в PDF:
 
-[lecture-01](lecture-01/conspect.pdf) · [lecture-02](lecture-02/conspect.pdf) · [lecture-03](lecture-03/conspect.pdf) · [lecture-04](lecture-04/conspect.pdf) · [lecture-05](lecture-05/conspect.pdf)
+[lecture-01](lecture-01/conspect.pdf) · [lecture-02](lecture-02/conspect.pdf) · [lecture-03](lecture-03/conspect.pdf) · [lecture-04](lecture-04/conspect.pdf) · [lecture-05](lecture-05/conspect.pdf) · [lecture-06](lecture-06/conspect.pdf)
 
-PDF пересобираются вместе с лекциями (шаг сборки `gen_pdfs.ps1`): если меняется `presentation.pptx` или `conspect.docx`, PDF нужно пересобрать.
+Конспект лекции 6 построен **по номерам слайдов**: для каждого слайда — «что сказать», «что показать», аналогия, типичная ошибка и вопрос с сильным ответом. В конце — ключевые выводы, вопросы «объясни без бумаги» и мост к следующей лекции.
+
+PDF пересобираются вместе с лекциями (шаг сборки `gen_pdfs.ps1`): если меняется `presentation.pptx`, `conspect.docx` или `flashcards.docx`, PDF нужно пересобрать.
 
 ## Что в папке каждой лекции
 
@@ -32,33 +42,35 @@ PDF пересобираются вместе с лекциями (шаг сбо
 |---|---|
 | `presentation.pptx` | Слайды на 90 минут, показываются на занятии |
 | `presentation.pdf` | Те же слайды в PDF — для чтения с телефона |
-| `slide-script.docx` | Что говорить по каждому слайду |
+| `slide-script.docx` | Что говорить по каждому слайду (лекции 1–5) |
 | `conspect.docx` | Конспект для подготовки: механизм, ограничения, «почему это важно» |
-| `conspect.pdf` | Конспект в PDF |
-| `diagrams.docx` | Схемы для доски: что рисовать, в каком порядке, какой вывод |
-| `analogies.docx` | Аналогии с границами применимости |
-| `interview-qa.docx` | Вопросы интервью с эталонными ответами |
-| `common-mistakes.docx` | Типичные заблуждения и как их исправить |
-| `bridge-next.docx` | Связка со следующей лекцией (в пятой — завершение курса) |
+| `conspect.pdf` | Конспект в PDF; в лекции 6 — по номерам слайдов |
+| `diagrams.docx` | Схемы для доски: что рисовать, в каком порядке, какой вывод (лекции 1–5) |
+| `analogies.docx` | Аналогии с границами применимости (лекции 1–5) |
+| `interview-qa.docx` | Вопросы интервью с эталонными ответами (лекции 1–5) |
+| `common-mistakes.docx` | Типичные заблуждения и как их исправить (лекции 1–5) |
+| `bridge-next.docx` | Связка со следующей лекцией (лекции 1–5) |
+| `flashcards.docx` / `.pdf` / `.tsv` | Лекция 6: 64 карточки для печати и разрезания; TSV — для импорта в Anki |
 | `game.html` | Мини-игра на 10–11 сценариев с разбором каждого ответа |
-| `test.html` | Викторина на 10 вопросов (лекции 4 и 5) |
+| `test.html` | Викторина на 10 вопросов (лекции 4, 5 и 6) |
+| `practice.html` / `.pdf` | Лекция 7: часовой тест на 48 вопросов с таймером и печатная версия с ключом |
 
 Корневые документы: [README.docx](README.docx), [CURRICULUM_MAP.docx](CURRICULUM_MAP.docx) (сверка с программой CS221), [SOURCES.docx](SOURCES.docx), [ROADMAP.docx](ROADMAP.docx), [STATE.docx](STATE.docx), [REPORT.docx](REPORT.docx), [TASK.md](TASK.md).
 
 ## Как открыть
 
-HTML-файлы (`game.html`, `test.html`) открываются двойным щелчком в любом браузере, **интернет не нужен**. Документы Word и презентации — в Microsoft Office или совместимых редакторах, а `.pptx` с телефона без такого приложения откроется как каша символов — поэтому для чтения с телефона есть `presentation.pdf` и `conspect.pdf`: они открываются любым встроенным просмотрщиком.
+HTML-файлы (`game.html`, `test.html`, `practice.html`) открываются двойным щелчком в любом браузере, **интернет не нужен**. Документы Word и презентации — в Microsoft Office или совместимых редакторах, а `.pptx` с телефона без такого приложения откроется как каша символов — поэтому для чтения с телефона есть `presentation.pdf` и `conspect.pdf`: они открываются любым встроенным просмотрщиком.
 
 ## Самопроверка
 
 У каждого HTML-файла есть режим автопроверки: откройте файл с хешем `#selftest` в адресной строке,
 
 ```
-lecture-05/game.html#selftest
+lecture-06/game.html#selftest
 ```
 
-и он пройдёт себя сам, а в конце напечатает строку вида `SELFTEST score=2200 correct=11 total=11`. Для всех пяти игр и двух викторин этот режим прогнан в headless Chrome: все вопросы отвечены, счёт максимальный.
+и он пройдёт себя сам, а в конце напечатает строку вида `SELFTEST score=2200 correct=11 total=11`. Все шесть игр, три викторины и большой тест прогнаны в headless Chrome: все вопросы отвечены, счёт максимальный (игра — 11/11, викторина — 10/10, большой тест — 48/48).
 
 ## Источники
 
-Основа — официальные материалы Stanford CS221 Autumn 2025, ветка `autumn2025`, коммит `d5752037fd67c0824f7330ad1a7b40bd1d992807`. Полный перечень с датами доступа — в [SOURCES.docx](SOURCES.docx).
+Основа — официальные материалы Stanford CS221 Autumn 2025, ветка `autumn2025`, коммит `d5752037fd67c0824f7330ad1a7b40bd1d992807`; для лекции 6 — исполняемые файлы по обучению с подкреплением из той же ветки и расписание Stanford CS234 Winter 2026 (снимок от 05.11.2026). Полный перечень с датами доступа — в [SOURCES.docx](SOURCES.docx).
