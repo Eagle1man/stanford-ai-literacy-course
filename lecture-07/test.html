@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG и агенты — проверка</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:"Segoe UI",Roboto,sans-serif;background:linear-gradient(160deg,#f4f7fc,#e7edf7);color:#1e1e1e;padding:24px 16px;display:flex;justify-content:center}
+.app{max-width:800px;width:100%}
+h1{font-size:24px;color:#1f3564;margin:6px 0 2px}
+.pill{display:inline-block;background:#fff;border:1px solid #d5deec;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;margin-right:6px;margin-bottom:6px}
+.pill b{color:#c0502a}
+.bar{height:8px;background:#dfe6f2;border-radius:999px;margin:6px 0 14px}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,#1f3564,#0f6b6b);border-radius:999px;transition:width .35s}
+.card{background:#fff;border:1px solid #d5deec;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px rgba(31,53,100,.07)}
+.meta{font-size:12px;color:#6b7280;margin-bottom:8px;display:flex;justify-content:space-between}
+.q{font-size:17px;font-weight:600;margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:#fff;border:1.5px solid #d5deec;border-radius:12px;padding:10px 12px;font-size:15px;cursor:pointer;display:flex;gap:10px}
+.opt:hover{border-color:#1f3564}
+.opt .key{flex:0 0 22px;height:22px;border-radius:6px;background:#eaeff7;color:#1f3564;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.opt.picked{border-color:#1f3564;background:#f2f5fc}
+.opt.correct{border-color:#0f6b6b;background:#eef7f5}
+.opt.wrong{border-color:#c0502a;background:#fdf1ec}
+.opt:disabled{cursor:default}
+.explain{display:none;margin-top:8px;border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.5;background:#f7f9fd}
+.explain.show{display:block}
+.btn{font:inherit;font-weight:600;border-radius:11px;padding:10px 16px;border:1.5px solid transparent;cursor:pointer}
+.btn.primary{background:#1f3564;color:#fff}
+.btn.ghost{background:transparent;color:#1f3564;border-color:#d5deec}
+.row{display:flex;gap:10px;justify-content:center;margin-top:8px}
+@media(max-width:640px){h1{font-size:20px}.q{font-size:16px}}
+</style></head>
+<body><div class="app">
+<h1>RAG и агенты — проверка</h1>
+<div style="margin:6px 0"><span class="pill">Отвечено <b id="s-done">0</b>/10</span><span class="pill">Верно <b id="s-right">0</b></span></div>
+<div class="bar"><div id="pbar"></div></div>
+<main id="stage"></main>
+<div style="text-align:center;font-size:12px;color:#6b7280;margin-top:10px">10 вопросов на понимание · один файл без интернета</div></div>
+<script>
+var QS = [{"q": "Что такое RAG?", "opts": ["Генерация после дообучения", "Генерация с поиском по документам", "Замена модели на новую", "Увеличение словаря"], "ans": 1, "ex": "RAG — Retrieval-Augmented Generation: модель получает найденные документы вместе с вопросом."}, {"q": "Зачем нужна нарезка документов?", "opts": ["Чтобы уменьшить число файлов", "Чтобы уместиться в контекст и не тащить лишнее", "Чтобы ускорить обучение модели", "Чтобы создать эмбеддинги"], "ans": 1, "ex": "Контекстное окно ограничено, длинный текст дорог. Нарезка с перехлёстом оставляет смысл и снижает шум."}, {"q": "Что ищет векторный поиск?", "opts": ["Точное совпадение слов", "Совпадение дат и номеров", "Близкие по смыслу тексты", "Самые длинные документы"], "ans": 2, "ex": "Эмбеддинги описывают смысл текста вектором: близкие по смыслу находятся рядом."}, {"q": "Зачем нужен гибридный поиск?", "opts": ["Объединить поиск по смыслу и по точным словам", "Заменить модель", "Ускорить генерацию", "Сократить число кусков"], "ans": 0, "ex": "Векторный поиск не видит точного совпадения. Обычный поиск видит. Гибрид берёт и то и другое."}, {"q": "Что делает реранкер?", "opts": ["Удаляет документы из базы", "Пересматривает найденные фрагменты и сортирует по важности", "Обучает эмбеддинги", "Пишет ответ вместо модели"], "ans": 1, "ex": "Реранкер заново оценивает каждый кусок вместе с вопросом и ставит самые релевантные наверх."}, {"q": "Чем агент отличается от обычной модели?", "opts": ["У него больше параметров", "Он вызывает инструменты и использует результат", "Он всегда работает быстрее", "Он не может ошибаться"], "ans": 1, "ex": "Агент в цикле: цель, действие, инструмент, наблюдение. Обычная модель даёт один ответ на один вопрос."}, {"q": "Зачем агенту память?", "opts": ["Запоминать пароль", "Не повторять один и тот же вызов", "Сохранять ответы пользователей", "Быстрее учиться"], "ans": 1, "ex": "Без памяти агент не помнит, что уже сделал, и ходит по кругу, повторяя одни и те же вызовы."}, {"q": "Почему проверка по двум ответам не доказывает качество?", "opts": ["Ошибки редки и на паре примеров их не увидеть", "Ответы слишком длинные", "Модель обманывает", "Тест должен быть коротким"], "ans": 0, "ex": "Ошибка может встретиться один раз на сотню вопросов. Нужен заранее собранный набор реальных вопросов с эталонами."}, {"q": "Что такое ИИ-судья?", "opts": ["Модель, которая пишет ответы", "Модель, оценивающая ответы другой модели", "Человек, проверяющий ответы", "Инструмент для поиска"], "ans": 1, "ex": "Судья быстро оценивает ответ по критериям, но у него есть смещения — он любит длинные и уверенные ответы."}, {"q": "Как защититься от prompt injection?", "opts": ["Удалить все документы", "Явно разделять инструкции системы и данные из документов", "Использовать более дорогую модель", "Никогда не использовать RAG"], "ans": 1, "ex": "Текст документа может содержать скрытую команду. Разделение инструкций и данных — основная защита."}];
+</script><script>
+(function(){
+var qa=QS,T=qa.length,pi=[],gr=[],ri=0,stage=document.getElementById('stage'),sdo=document.getElementById('s-done'),sri=document.getElementById('s-right');
+function el(t,c,tx){var n=document.createElement(t);if(c)n.className=c;if(tx!==undefined)n.textContent=tx;return n;}
+function ref(){var d=pi.filter(function(x){return x!==null;}).length;sdo.textContent=d;sri.textContent=ri;document.getElementById('pbar').style.width=Math.round(d/T*100)+'%';}
+function chk(){for(var i=0;i<T;i++){if(pi[i]===null)return;for(var j=0;j<T;j++){if(gr[j])continue;gr[j]=true;var ok=pi[j]===qa[j].ans;ri+=ok?1:0;var card=stage.children[j];var opt=card.querySelectorAll('.opt');opt.forEach(function(b,k){b.disabled=true;if(k===qa[j].ans)b.classList.add('correct');else if(k===pi[j])b.classList.add('wrong');});var ex=card.querySelector('.explain');ex.classList.add('show');ex.innerHTML='<b>'+(ok?'Верно':'Неверно — правильный ответ: '+qa[j].opts[qa[j].ans])+'</b><br>'+qa[j].ex;}document.getElementById('chk').disabled=true;}ref();}
+function build(){stage.textContent='';qa.forEach(function(q,i){var card=el('div','card');var m=el('div','meta');m.appendChild(el('span','','Вопрос '+(i+1)+' из '+T));card.appendChild(m);card.appendChild(el('p','q',q.q));var o=el('div','opts');q.opts.forEach(function(t,k){var b=el('button','opt');b.appendChild(el('span','key',String.fromCharCode(1040+k)));b.appendChild(el('span','',t));b.onclick=function(){if(gr[i])return;pi[i]=k;o.querySelectorAll('.opt').forEach(function(x){x.classList.remove('picked');});b.classList.add('picked');ref();};o.appendChild(b);});card.appendChild(o);card.appendChild(el('div','explain'));stage.appendChild(card);});var row=el('div','row');var ck=el('button','btn primary','Проверить ответы');ck.id='chk';ck.onclick=chk;row.appendChild(ck);var rs=el('button','btn ghost','Заново');rs.onclick=function(){pi=[];gr=[];ri=0;build();ref();};row.appendChild(rs);stage.appendChild(row);}
+var SELFTEST=location.hash.indexOf('selftest')>=0;
+build();ref();
+if(SELFTEST){setTimeout(function tick(){for(var i=0;i<T;i++){stage.children[i].querySelectorAll('.opt')[qa[i].ans].click();}chk();var out=document.createElement('div');out.id='selftest-result';out.textContent='SELFTEST score='+(ri*100)+' correct='+ri+' total='+T+' answered='+pi.filter(function(x){return x!==null;}).length;document.body.appendChild(out);},50);}
+})();
+</script></body></html>
